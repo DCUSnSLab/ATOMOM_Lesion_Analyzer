@@ -207,9 +207,9 @@ def display_instances_for_class(image, boxes, masks, class_ids, class_names,
 
     # If no axis is passed, create one and automatically call show()
     auto_show = False
-    if not ax:
-        _, ax = plt.subplots(1, figsize=figsize)
-        auto_show = True
+    # if not ax:
+    #     _, ax = plt.subplots(1, figsize=figsize)
+    #     auto_show = True
 
     # Generate random colors
     colors = colors or random_colors(N)
