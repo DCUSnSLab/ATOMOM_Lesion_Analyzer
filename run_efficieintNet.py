@@ -59,18 +59,23 @@ class Efficient_net:
         inputs = inputs.to(self.device)
         outputs = self.model(inputs.unsqueeze(0))
         probabilities = torch.nn.functional.softmax(outputs, dim=1)
+        # print(probabilities)
         top_p, top_class = probabilities.topk(self.Config.num_classes, dim=1)
+        # print(top_p, top_class )
         result = list(
             zip([t.item() for t in top_p.squeeze().squeeze()], [t.item() for t in top_class.squeeze().squeeze()]))
         result.sort(key=lambda x: x[1])
+        # print(result)
         classification_result = [None for _ in range(self.Config.num_classes)]
         for i, data in enumerate(result):
             class_prob, class_id = data
             class_name = self.Config.class_names[str(class_id).zfill(3)]
             classification_result[i] = (class_name, class_prob)
+        # print(classification_result)
         classification_result.sort(key=lambda x: x[1], reverse=True)
         if (self.Config.verbose):
-            print(classification_result,"?")
+            print(classification_result, "?")
+        # print("self.Config.topk",self.Config.topk)
         return classification_result[:self.Config.topk]
 
 
