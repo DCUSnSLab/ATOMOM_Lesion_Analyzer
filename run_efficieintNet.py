@@ -49,11 +49,14 @@ class Efficient_net:
         model.eval()
         return model.to(self.device)
 
-    def inference(self, image_path=None, image=None, verbose=False):
-        if (image_path != None):
-            image = skimage.io.imread(image_path)
-        else:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    def inference(self, image_info, verbose=False):
+        image = None
+        if isinstance(image_info, str):
+            image = skimage.io.imread(image_info)
+        elif isinstance(image_info, np.ndarray):
+            #  cv2로 이미지를 읽는 상황이라 가정함
+            image = cv2.cvtColor(image_info, cv2.COLOR_BGR2RGB)
+        assert image is not None, "경로 또는 ndarray를 입력하세요"
         image = Image.fromarray(image).convert('RGB')
         inputs = self.data_transforms(image)
         inputs = inputs.to(self.device)
