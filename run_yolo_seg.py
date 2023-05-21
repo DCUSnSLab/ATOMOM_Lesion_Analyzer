@@ -64,16 +64,19 @@ class Yolo_Seg:
         #     cv2.waitKey(30000)
         return image
 
-    def __get_results(self, cur_image_path):
-        image = cv2.imread(cur_image_path)
-        # print(image.shape)
+    def __get_results(self, image_info):
+        image = None
+        if isinstance(image_info, str):
+            image = cv2.imread(image_info)
+        else:
+            image = image_info
         self.copied_image = deepcopy(image)
         # print("self.Config.device",self.Config.device)
-        results = self.model.predict(cur_image_path, device=self.Config.device, verbose=self.Config.verbose)
+        results = self.model.predict(image, device=self.Config.device, verbose=self.Config.verbose)
         length = len(results[0].boxes.cpu().numpy())
         cropped_images = image
         if (length <= 0):
-            print('\033[31m' + "object is not detected!!!", "image_path: " + cur_image_path + '\033[0m')
+            # print('\033[31m' + "object is not detected!!!", "image_path: " + cur_image_path + '\033[0m')
             return image, [cropped_images], False
         # raise Exception('\033[31m' + "object is not detected!!!", "image_path: " + image_path + '\033[0m')
         else:
@@ -84,13 +87,17 @@ class Yolo_Seg:
         return image, cropped_images, True
 
 
-    def inference(self, image_path,save_path=False):
-        self.__get_image_paths(image_path)
+    def inference(self, image_info,save_path=False):
+        if isinstance(image_info, str):
+            self.__get_image_paths(image_info)
+        elif isinstance(image_info, np.ndarray):
+            self.Config.file_paths = [image_info]
+        assert len(self.Config.file_paths)>0, "경로 또는 ndarray를 입력하세요"
 
         inference_results = [None for _ in range(len(self.Config.file_paths))]
 
-        for i, image_path in enumerate(self.Config.file_paths):
-            image, cropped_images,status = self.__get_results(cur_image_path=image_path)
+        for i, image_info in enumerate(self.Config.file_paths):
+            image, cropped_images,status = self.__get_results(image_info=image_info)
             inference_results[i] = (image,cropped_images,status)
 
             if (save_path):
@@ -126,7 +133,7 @@ if __name__ == '__main__':
 
 
 
-    inference_results = yolo_seg.inference(image_path=image_path)
+    inference_results = yolo_seg.inference(image_info=image_path)
     for i, data in enumerate(inference_results):
         for index,cr in enumerate(data[1]):
             cv2.imshow(str(index),cr)
