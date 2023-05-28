@@ -9,7 +9,7 @@ import natsort
 from run_efficieintNet import Efficient_net
 from run_yolo_seg import Yolo_Seg
 from ultralytics import YOLO
-
+import openpyxl
 def get_images_paths(image_path):
     if (os.path.isfile(image_path)):
         return [image_path]
@@ -39,16 +39,27 @@ def ordinal_suffix(n):
 
 
 class Skin_lesion:
-    def __init__(self,ef_configs,yolo_configs):
+    def __init__(self,ef_configs,yolo_configs,exp=False):
 
         self.cwd = os.getcwd()
         self.ef_configs = ef_configs
         self.num_ef_models = len(ef_configs)
         self.ef_models, self.ef_weights = self.__load_ef_net(ef_configs=self.ef_configs)
-
+        self.exp = exp
+        self.__set_experiment()
         self.yolo_configs = yolo_configs
         self.num_yolo_models = len(yolo_configs)
         # self.yolo_seg_models = self.__load_yolo(yolo_configs)
+    def __set_experiment(self):
+        if(self.exp):
+            self.exp_outputs = []
+            self.exp_wb = openpyxl.Workbook()
+
+            for i in range(self.num_ef_models):
+                self.exp_wb.create_sheet(title="eff_"+str(i),index=i)
+                self.exp_outputs.append([])
+            self.exp_wb.create_sheet(title="ensemble", index=self.num_ef_models)
+
 
     def __ensemble_voting(self, ef_results):
         class_names = []
@@ -92,8 +103,8 @@ class Skin_lesion:
         for i, model in enumerate(self.ef_models):
             result = model.inference(image_info=image_info)
             ordinal = ordinal_suffix(i + 1)
-            print(f"{ordinal} model:")
-            print(result)
+            # print(f"{ordinal} model:")
+            # print(result)
             results[i] = result
         return results
 
@@ -119,14 +130,28 @@ class Skin_lesion:
         #         cv2.waitKey(0)
         #         cv2.destroyAllWindows()
         # print('*'*50)
+    def save_exp(self):
+        self.exp_wb.save(str(self.ef_weights) + '.xlsx')
+    def __write_excel(self,img_name,ef_results,ensemble_predictions):
+        # sheets = self.exp_wb.sheetnames
+
+        for i, result in enumerate(ef_results):
+            ws = self.exp_wb[self.exp_wb.sheetnames[i]]
+            ws.append([img_name]+[x for pair in result for x in pair])
+        ws = self.exp_wb['ensemble']
+        ws.append([img_name]+[x for pair in ensemble_predictions for x in pair])
+
     def inference(self,image_path):
         img = cv2.imread(image_path)
         ef_results = self.__ef_inference(img)
         ensemble_predictions = self.__ensemble_voting(ef_results=ef_results)
-        print('*'*50)
-        print(ensemble_predictions)
-
-        exit()
+        # print('*'*50)
+        # print(ensemble_predictions)
+        # print(list(ensemble_predictions.items()))
+        if(self.exp):
+            self.__write_excel(img_name=os.path.basename(image_path).split('.')[0], ef_results=ef_results,
+                               ensemble_predictions=list(ensemble_predictions.items()))
+        # exit()
         # yolo_inferred_images, yolo_cropped_images, yolo_status = self.__yolo_seg_inference(img)
 
 
@@ -187,8 +212,20 @@ if __name__ == '__main__':
         "040": "juvenile_xanthogranuloma",
         }
     class Config_41_min(Config_41):
-        weight = 0.4
+        weight = 0.1
         model_path = os.path.join(os.getcwd(),"classification/efficientnet_models/dp05_dc05.pt")
+    class Config_6_min(Config_41):
+        weight = 0.3
+        device = 1
+        model_path = "classification/efficientnet_models/min_b0_6.pt"
+        class_names = {
+        "000": "normal_skin",
+        "001": "atopy",
+        "002": "psoriasis",
+        "003": "acne",
+        "004": "epidermal_cyst",
+        "005": "varicella",
+        }
     class Config_5(Config_41):
         weight = 0.1
         device = 1
@@ -215,14 +252,18 @@ if __name__ == '__main__':
         file_paths = None
 
 
-    ef_configs = [Config_41, Config_41_min,Config_5]
+    ef_configs = [Config_41, Config_41_min,Config_6_min,Config_5]
     yolo_configs = [Config_yolo]
-    skin_lesion = Skin_lesion(ef_configs=ef_configs,yolo_configs=yolo_configs)
-    image_path = "/home/dgdgksj/skin_lesion/ultralytics/atomom_test_images/"
+    skin_lesion = Skin_lesion(ef_configs=ef_configs,yolo_configs=yolo_configs,exp=True)
+    image_path = "test_data/atomom_test_images/"
     image_path_list = get_images_paths(image_path)
     output = []
     for i, image_path in enumerate(image_path_list):
         skin_lesion.inference(image_path=image_path)
+        # if(i>10):
+        #     break
+    if(skin_lesion.exp):
+        skin_lesion.save_exp()
         # output.append([file_name, class_name, confidence])
     # Write the output to a CSV file
     # with open('./experiment_results/output.csv', 'w', newline='') as file:
