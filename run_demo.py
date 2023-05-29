@@ -10,6 +10,7 @@ from run_efficieintNet import Efficient_net
 from run_yolo_seg import Yolo_Seg
 from ultralytics import YOLO
 import openpyxl
+from multiprocessing import Process, Queue
 def get_images_paths(image_path):
     if (os.path.isfile(image_path)):
         return [image_path]
@@ -45,10 +46,13 @@ class Skin_lesion:
         self.ef_configs = ef_configs
         self.num_ef_models = len(ef_configs)
         self.ef_models, self.ef_weights = self.__load_ef_net(ef_configs=self.ef_configs)
+
         self.exp = exp
         self.__set_experiment()
         self.yolo_configs = yolo_configs
         self.num_yolo_models = len(yolo_configs)
+        self.is_metric_write = False
+        self.default_blank = []
         # self.yolo_seg_models = self.__load_yolo(yolo_configs)
     def __set_experiment(self):
         if(self.exp):
@@ -82,9 +86,9 @@ class Skin_lesion:
             models[i] = Efficient_net(Config=config,device=config.device)
             ef_weights[i] = config.weight
         # NOTE 가중치 정규화, 가중치 합이 1이 아닐시에 정규화를 수행함
+        epsilon = 1e-6
         total_weight = sum(ef_weights)
-
-        if (total_weight == 1):
+        if (abs(total_weight - 1) < epsilon):
             pass
         else:
             for i in range(len(ef_weights)):
@@ -132,14 +136,41 @@ class Skin_lesion:
         # print('*'*50)
     def save_exp(self):
         self.exp_wb.save(str(self.ef_weights) + '.xlsx')
-    def __write_excel(self,img_name,ef_results,ensemble_predictions):
-        # sheets = self.exp_wb.sheetnames
+    def __write_metrics_to_excel(self,ws,len_result):
+        ws.append([])
+        ws.append([])
+        temp = ['','True Positive','True Negative','False Positive','False Negative','Precision','Recall','F1-Score','Accuracy','']
+        self.default_blank = ['' for x in range(len(temp))]
+        temp += ['img_names','Ground Truth']
+        for i in range(len_result):
+            if( (i)%2 == 0):
+                temp.append('predict')
+            else:
+                temp.append('confidence')
+        ws.append(temp)
+        return ['',"=COUNTIFS(L:L, \"atopy\", M:M, \"atopy\")","=COUNTIFS(L:L,\"<>Atopy\",M:M,\"<>Atopy\",L:L,\"<>\",M:M,\"<>\")-1", "=COUNTIFS(L:L, \"<>Atopy\", M:M, \"Atopy\")","=COUNTIFS(L:L, \"Atopy\", M:M, \"<>Atopy\")","=B4/(B4+D4)","=B4/(B4+E4)","=2*(F4*G4)/(F4+G4)","=(B4+C4)/(B4+C4+D4+E4)",'']
 
+        # ws.append
+        pass
+
+    def __write_to_sheet(self, ws, img_name, result, is_metric_write):
+        result = [x for pair in result for x in pair]
+        if is_metric_write:
+            metric = self.__write_metrics_to_excel(ws, len(result))
+            ws.append(metric + [img_name, img_name.split("_")[0]] + result)
+        else:
+            ws.append(self.default_blank + [img_name, img_name.split("_")[0]] + result)
+
+    def __write_excel(self, img_name, ef_results, ensemble_predictions):
+        is_metric_write = not self.is_metric_write
+        if is_metric_write:
+            self.is_metric_write = True
         for i, result in enumerate(ef_results):
             ws = self.exp_wb[self.exp_wb.sheetnames[i]]
-            ws.append([img_name]+[x for pair in result for x in pair])
+            self.__write_to_sheet(ws, img_name, result, is_metric_write)
+
         ws = self.exp_wb['ensemble']
-        ws.append([img_name]+[x for pair in ensemble_predictions for x in pair])
+        self.__write_to_sheet(ws, img_name, ensemble_predictions, is_metric_write)
 
     def inference(self,image_path):
         img = cv2.imread(image_path)
@@ -255,13 +286,13 @@ if __name__ == '__main__':
     ef_configs = [Config_41, Config_41_min,Config_6_min,Config_5]
     yolo_configs = [Config_yolo]
     skin_lesion = Skin_lesion(ef_configs=ef_configs,yolo_configs=yolo_configs,exp=True)
-    image_path = "test_data/atomom_test_images/"
+    image_path = "test_data/atomom_test_images_samples/"
     image_path_list = get_images_paths(image_path)
     output = []
     for i, image_path in enumerate(image_path_list):
         skin_lesion.inference(image_path=image_path)
-        # if(i>10):
-        #     break
+        if(i>10):
+            break
     if(skin_lesion.exp):
         skin_lesion.save_exp()
         # output.append([file_name, class_name, confidence])
