@@ -33,9 +33,15 @@ class Yolo_Seg:
             raise Exception("image_path is not dir or valid image, please check image_path")
     def __draw_boexes(self,image, boxes):
         cropped_images = [None for _ in range(len(boxes.boxes))]
+        confidences = [None for _ in range(len(boxes.boxes))]
         for i, box in enumerate(boxes.boxes):
             lw = max(round(sum(image.shape) / 2 * 0.003), 2)
             p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
+            # print(box.cpu().numpy())
+            # print(box[4].cpu().numpy(),box[5].cpu().numpy())
+            confidences[i] = box[4].cpu().numpy()
+            # print("*"*50)
+            # confidence[i]
             cropped_images[i] = self.copied_image[int(box[1]):int(box[3]), int(box[0]):int(box[2])]
             cv2.rectangle(image, p1, p2, (0, 0, 255), thickness=lw, lineType=cv2.LINE_AA)
             cur_class = self.Config.model_names[int(boxes.cls[i])]
@@ -50,7 +56,7 @@ class Yolo_Seg:
                 cv2.putText(image, cur_label, (p1[0], p1[1] - 2 if outside else p1[1] + h + 2), 0, lw / 3,
                             (255, 255, 255),
                             thickness=tf, lineType=cv2.LINE_AA)
-        return image, cropped_images
+        return image, cropped_images, confidences
 
     def __draw_segmentation(self, image, segmentations, alpha=0.8):
         for segmentation in segmentations:
@@ -73,18 +79,25 @@ class Yolo_Seg:
         self.copied_image = deepcopy(image)
         # print("self.Config.device",self.Config.device)
         results = self.model.predict(image, device=self.Config.device, verbose=self.Config.verbose)
+        # print(results[0].boxes.boxes)
         length = len(results[0].boxes.cpu().numpy())
         cropped_images = image
+        confidences = []
         if (length <= 0):
             # print('\033[31m' + "object is not detected!!!", "image_path: " + cur_image_path + '\033[0m')
-            return image, [cropped_images], False
+            # return image, [cropped_images], False, [0.0]
+            # print("여기로 오네")
+            return image, [], False, [0.0]
         # raise Exception('\033[31m' + "object is not detected!!!", "image_path: " + image_path + '\033[0m')
         else:
+            # print("여기로 오네2")
             for i, result in enumerate(results):
-                image,cropped = self.__draw_boexes(image=image, boxes=result.boxes)
+                image,cropped,confidences = self.__draw_boexes(image=image, boxes=result.boxes)
                 cropped_images = cropped
                 image = self.__draw_segmentation(image, segmentations=result.masks.masks)
-        return image, cropped_images, True
+                # cv2.imshow("image")
+                # cv2.waitKey(0)
+        return image, cropped_images, True, confidences
 
 
     def inference(self, image_info,save_path=False):
@@ -97,8 +110,8 @@ class Yolo_Seg:
         inference_results = [None for _ in range(len(self.Config.file_paths))]
 
         for i, image_info in enumerate(self.Config.file_paths):
-            image, cropped_images,status = self.__get_results(image_info=image_info)
-            inference_results[i] = (image,cropped_images,status)
+            image, cropped_images,status, confidences = self.__get_results(image_info=image_info)
+            inference_results[i] = (image,cropped_images,status, confidences)
 
             if (save_path):
                 raise NotImplementedError("save function is not implemented ㅜㅜ")
