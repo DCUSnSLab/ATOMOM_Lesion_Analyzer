@@ -214,6 +214,8 @@ def display_instances_for_class(image, boxes, masks, class_ids, class_names,
     # Generate random colors
     colors = colors or random_colors(N)
     masked_image = image.astype(np.uint32).copy()
+    cropped_images = []
+    confidences = []
     for i in range(N):
         score = scores[i] if scores is not None else None
         # score가 0.1 미만이면 출력 안되게 수정했어요 아래 두 행 주석하면 그냥 다 출력합니다
@@ -236,6 +238,8 @@ def display_instances_for_class(image, boxes, masks, class_ids, class_names,
             # Skip this instance. Has no bbox. Likely lost in image cropping.
             continue
         y1, x1, y2, x2 = boxes[i]
+        cropped_images.append(cv2.cvtColor(image[int(y1):int(y2), int(x1):int(x2)], cv2.COLOR_RGB2BGR))
+        confidences.append(score)
         if show_bbox:
             # todo alhpa-blending이 되게 수정해야 할듯 합니다
             masked_image = cv2.rectangle(masked_image,(x1,y1),(x2,y2),color,2)
@@ -262,7 +266,7 @@ def display_instances_for_class(image, boxes, masks, class_ids, class_names,
 
 
 
-    return masked_image
+    return masked_image,cropped_images,confidences
 
 
 def display_differences(image,
