@@ -1,22 +1,22 @@
 import os
 import numpy as np
 from setproctitle import *
-import csv
-import torch
-import torch.onnx
 import cv2
 import natsort
 from run_efficieintNet import Efficient_net
 from run_yolo_seg import Yolo_Seg
 from run_mrcnn import Mask_RCNN
-from mrcnn.config import Config as Mask_RCNN_Config
-from ultralytics import YOLO
 import openpyxl
 from tqdm import tqdm
 from copy import deepcopy
 from collections import Counter
-from multiprocessing import Process, Queue
+import model_configs
 def get_images_paths(image_path):
+    '''
+
+    :param image_path:
+    :return:
+    '''
     if (os.path.isfile(image_path)):
         return [image_path]
     elif (os.path.isdir(image_path)):
@@ -36,18 +36,9 @@ def get_images_paths(image_path):
     else:
         raise Exception("image_path is not dir or valid image, please check image_path")
 
-def ordinal_suffix(n):
-    suffixes = {1: "st", 2: "nd", 3: "rd"}
-    if 10 < n < 20:
-        return "%d%s" % (n, "th")
-    return "%d%s" % (n, suffixes.get(n % 10, "th"))
-
-
-
 class Skin_lesion:
     def __init__(self,ef_configs,yolo_configs,mrcnn_configs,exp=False):
 
-        self.cwd = os.getcwd()
         self.ef_configs = ef_configs
         self.ef_config_names = []
         self.num_ef_models = len(ef_configs)
@@ -55,8 +46,6 @@ class Skin_lesion:
 
         self.exp = exp
         self.__set_experiment()
-        # self.exp_wb.save("./exp_results/" + "dddd.xlsx")
-        # exit()
         self.yolo_configs = yolo_configs
         self.mrcnn_configs = mrcnn_configs
         self.num_yolo_models = len(yolo_configs)
@@ -68,7 +57,6 @@ class Skin_lesion:
         self.mrcnn_models = self.__load_mrcnn(mrcnn_configs)
     def __set_experiment(self):
         if(self.exp):
-            self.exp_outputs = []
             self.exp_wb = openpyxl.Workbook()
             # self.exp_wb.remove_sheet(self.exp_wb['Sheet'])
             self.exp_wb.remove(self.exp_wb['Sheet'])
@@ -86,24 +74,9 @@ class Skin_lesion:
             cnt += self.num_ef_models
             self.exp_wb.create_sheet(title="hard", index=cnt)
             self.exp_wb.create_sheet(title="soft", index=cnt + 1)
-                # self.exp_outputs.append([])
-            # self.exp_wb.create_sheet(title="ensemble", index=self.num_ef_models)
 
 
-    def __ensemble_voting(self, ef_results):
-        class_names = []
-        for i in range(self.num_ef_models):
-            class_names += [result[0] for result in ef_results[i]]
-        class_names = list(set(class_names))
-        ensemble_predictions = {}
-        for name in class_names:
-            ensemble_predictions[name] = 0.0
-        for i, model_result in enumerate(ef_results):
-            weight = self.ef_weights[i]
-            for j, (class_name, probability) in enumerate(model_result):
-                ensemble_predictions[class_name] += weight * probability
-        ensemble_predictions = dict(sorted(ensemble_predictions.items(), key=lambda x: x[1], reverse=True))
-        return ensemble_predictions
+
     def __load_ef_net(self,ef_configs):
         models = [None for x in range(self.num_ef_models)]
         ef_weights = [None for x in range(self.num_ef_models)]
@@ -121,19 +94,14 @@ class Skin_lesion:
                 ef_weights[i] = ef_weights[i] / total_weight
         return models, ef_weights
     def __load_yolo(self,yolo_configs):
-        # os.chdir('./segmentation')
         models = [None for x in range(self.num_yolo_models)]
         for i, config in enumerate(yolo_configs):
             models[i] = Yolo_Seg(config=config)
-        # os.chdir(self.cwd)
         return models
     def __load_mrcnn(self,mrcnn_configs):
-        # os.chdir('./segmentation')
         models = [None for x in range(self.num_mrcnn_models)]
         for i, config in enumerate(mrcnn_configs):
             models[i] = Mask_RCNN(mrcnn_config=config())
-
-        # os.chdir(self.cwd)
         return models
 
     def __ef_inference_uncropped_image(self, image_info):
@@ -143,21 +111,11 @@ class Skin_lesion:
             class_names = []
             class_names += [result[0] for result in infeered_result]
             class_names = list(set(class_names))
-            # print(infeered_result)
-            # print("class_names",class_names)
-            # divide_value = len(class_names)
             predictions_dict = {}
             for name in class_names:
                 predictions_dict[name] = 0.0
             for j, (class_name, probability) in enumerate(infeered_result):
                 predictions_dict[class_name] += probability
-            # print(infeered_result)
-            # print(predictions_dict)
-            # print(predictions_dict)
-            # print('*' * 50)
-            ordinal = ordinal_suffix(i + 1)
-            # print(f"{ordinal} model:")
-            # print(result)
             results[i] = predictions_dict
         # exit()
         return results
@@ -168,40 +126,19 @@ class Skin_lesion:
             class_names = []
             print("__ef_inference_cropped_image",len(cropped_images))
             for img in cropped_images:
-                # print("here")
-                # print(img)
-                # print(type(img))
-                # print(img.shape)
-                # print(type(img))
-                # cv2.imshow("img",img.copy())
-                # cv2.waitKey(0)
                 infeered_result = model.inference(image_info=img)
                 class_names += [result[0] for result in infeered_result]
                 temp_result.append(infeered_result)
-            # print(temp_result)
-            # class_names += [result[0] for result in temp_result[i]]
-            # print(class_names)
             class_names = list(set(class_names))
             predictions_dict = {}
-            # print(class_names)
             for name in class_names:
                 predictions_dict[name] = 0.0
             divide_value = len(temp_result)
             for infeered_result in temp_result:
-                # print(infeered_result)
-                # exit()
                 for j, (class_name, probability) in enumerate(infeered_result):
                     predictions_dict[class_name] += probability/divide_value
             predictions_dict = dict(sorted(predictions_dict.items(), key=lambda x: x[1], reverse=True))
-            # print(predictions_dict)
-            # print("*"*50)
             results[i] = predictions_dict
-        # print(results)
-        # exit()
-        # exit()
-        # for i in results:
-        #     print(i)
-        # exit()
         return results
 
     def __yolo_seg_inference(self, image_info):
@@ -225,7 +162,6 @@ class Skin_lesion:
         inference_results = []
         for i, model in enumerate(self.mrcnn_models):
             inference_results += model.inference(image_info=image_info)
-        # print(len(inference_results))
         mrcnn_inferred_images = []
         mrcnn_cropped_images=[]
         mrcnn_status=[]
@@ -259,8 +195,6 @@ class Skin_lesion:
         ws.append(temp)
         return ['',"=COUNTIFS(L:L, \"atopy\", M:M, \"atopy\")","=COUNTIFS(L:L,\"<>Atopy\",M:M,\"<>Atopy\",L:L,\"<>\",M:M,\"<>\")-1", "=COUNTIFS(L:L, \"<>Atopy\", M:M, \"Atopy\")","=COUNTIFS(L:L, \"Atopy\", M:M, \"<>Atopy\")","=B4/(B4+D4)","=B4/(B4+E4)","=2*(F4*G4)/(F4+G4)","=(B4+C4)/(B4+C4+D4+E4)",'']
 
-        # ws.append
-        pass
 
     def __write_to_sheet(self, ws, img_name, result, is_metric_write):
         # result = [x for pair in result for x in pair]
@@ -281,11 +215,7 @@ class Skin_lesion:
         ws = self.exp_wb['mrcnn']
         self.__write_to_sheet(ws, img_name, ["atopy" if mrcnn_status else "normal", mrcnn_mean], is_metric_write)
         cnt = 2
-        # print("here")
-        # print(ef_uncropped_results)
-        # exit()
         for i, result in enumerate(ef_uncropped_results):
-            # print(result)
             ws = self.exp_wb[self.exp_wb.sheetnames[cnt + i]]
             sorted_list = sorted(result.items(), key=lambda x: x[1], reverse=True)
             result = [item for pair in sorted_list for item in pair]
@@ -293,64 +223,32 @@ class Skin_lesion:
         cnt += len(ef_uncropped_results)
         for i, result in enumerate(ef_cropped_results):
             ws = self.exp_wb[self.exp_wb.sheetnames[cnt + i]]
-            # print(result)
             sorted_list = sorted(result.items(), key=lambda x: x[1], reverse=True)
-            # print("->")
             result = [item for pair in sorted_list for item in pair]
-            # print(img_name,result)
-            # print()
             self.__write_to_sheet(ws, img_name, result, is_metric_write)
         cnt += len(ef_cropped_results)
 
-            # ws = self.exp_wb[self.exp_wb.sheetnames[1+i]]
-            # self.__write_to_sheet(ws, img_name, result, is_metric_write)
+
         ws = self.exp_wb['hard']
         hard_counting =Counter(hard_voting_result).most_common(n=1)[0]
         self.__write_to_sheet(ws, img_name, [hard_counting[0],hard_counting[1]]+hard_voting_result, is_metric_write)
         ws = self.exp_wb['soft']
         self.__write_to_sheet(ws, img_name, soft_voting_result, is_metric_write)
-        # ws = self.exp_wb['ensemble']
-        # self.__write_to_sheet(ws, img_name, ensemble_predictions, is_metric_write)
-    def __write_excel2(self, img_name, ef_results, ensemble_predictions):
-        is_metric_write = not self.is_metric_write
-        if is_metric_write:
-            self.is_metric_write = True
-        for i, result in enumerate(ef_results):
-            ws = self.exp_wb[self.exp_wb.sheetnames[i]]
-            self.__write_to_sheet(ws, img_name, result, is_metric_write)
 
-        ws = self.exp_wb['ensemble']
-        self.__write_to_sheet(ws, img_name, ensemble_predictions, is_metric_write)
     def hard_voting(self,yolo_status,mrcnn_status,ef_uncropped_results,ef_cropped_results):
-        # print(yolo_status,mrcnn_status)
-        uncropped=[]
-        cropped=[]
         voting = []
         if(yolo_status):
             voting.append("atopy")
         if(mrcnn_status):
             voting.append("atopy")
         for result in ef_uncropped_results:
-            # print(result)
             sorted_list = sorted(result.items(), key=lambda x: x[1], reverse=True)
             result = [item for pair in sorted_list for item in pair]
-            # print(result)
-            # exit()
-            # temp = []
-            # for key, value in result.items():
-            #     temp += [key, value]
-            # result = temp
-            # result = list(result)
-            # result = [x for pair in result for x in pair]
-            # print(result)
             voting.append(result[0])
         # print("-" * 50)
         for result in ef_cropped_results:
             sorted_list = sorted(result.items(), key=lambda x: x[1], reverse=True)
             result = [item for pair in sorted_list for item in pair]
-            # result = list(result)
-            # result = [x for pair in result for x in pair]
-            # print(result)
             if(len(result)>0):
                 voting.append(result[0])
             else:
@@ -360,34 +258,21 @@ class Skin_lesion:
         return voting
     def soft_voting(self,yolo_mean,mrcnn_mean,ef_uncropped_results,ef_cropped_results):
         class_names = []
-        # print(yolo_mean,mrcnn_mean)
         divide_value = 2+ len(ef_uncropped_results) + len(ef_cropped_results)
         for infeered_result in ef_uncropped_results:
-            # for j, (class_name, probability) in enumerate(infeered_result):
-            #     predictions_dict[class_name] += probability / divide_value
-            # print(infeered_result)
-            # print(infeered_result.keys())
             class_names += list(infeered_result.keys())
-        # print('*'*50)
+
         for infeered_result in ef_cropped_results:
-            # print(infeered_result)
-            # print(infeered_result.keys())
-            # print(list(infeered_result.keys()))
             class_names += list(infeered_result.keys())
         predictions_dict = {}
-        # print(class_names)
+
         for name in class_names:
             predictions_dict[name] = 0.0
         predictions_dict['atopy'] = predictions_dict.get('atopy', 0) + yolo_mean/divide_value + mrcnn_mean/divide_value
         for infeered_result in ef_uncropped_results:
             for key, value in infeered_result.items():
-                # print(key, value)
                 predictions_dict[key] += value/divide_value
-            # exit()
-            # for j, sdf in enumerate(infeered_result):
-            #     print(sdf)
-            #     predictions_dict[class_name] += probability / divide_value
-                # exit()
+
         for infeered_result in ef_cropped_results:
             for key, value in infeered_result.items():
                 # print(key, value)
@@ -397,33 +282,11 @@ class Skin_lesion:
         soft = [item for pair in predictions_dict.items() for item in pair]
         print("soft", soft)
         return soft
-        # exit()
-        #
-        # for result in ef_uncropped_results:
-        #     # print(result)
-        #     # print("*"*50)
-        #     result = [x for pair in result for x in pair]
-        #     for data in result:
-        #         if isinstance(data, str):
-        #
-        #     # print(result)
-        #
-        # # print("-" * 50)
-        # for result in ef_cropped_results:
-        #     temp= []
-        #     for key, value in result.items():
-        #         temp+=[key,value]
-        #     result = temp
-        #     # result = list(result)
-        #     # result = [x for pair in result for x in pair]
-        #     # print(result)
-        #     voting.append(result[0])
 
 
     def inference(self,image_path,display=False):
         img = cv2.imread(image_path)
         # ef_results = self.__ef_inference(img)
-        # ensemble_predictions = self.__ensemble_voting(ef_results=ef_results)
 
         mrcnn_inferred_images, mrcnn_cropped_images,mrcnn_status, mrcnn_confidences = self.__mrcnn_inference(image_info=deepcopy(img))
         mrcnn_inferred_images = mrcnn_inferred_images[0]
@@ -463,19 +326,11 @@ class Skin_lesion:
             whole_cropped_images += yolo_cropped_images
         if (len(mrcnn_cropped_images) > 0):
             whole_cropped_images += mrcnn_cropped_images
-        # whole_cropped_images = np.array(yolo_cropped_images + mrcnn_cropped_images, dtype=object)
+
 
         ef_uncropped_results = self.__ef_inference_uncropped_image(image_info=deepcopy(img))
-        # print("dsdfs")
-        # print(ef_uncropped_results)
         ef_cropped_results = self.__ef_inference_cropped_image(cropped_images=whole_cropped_images)
-        # print("ef_uncropped_results",len(ef_uncropped_results))
-        # for i in ef_uncropped_results:
-        #     print(i)
-        #
-        # print("ef_cropped_results",len(ef_cropped_results))
-        # for i in ef_cropped_results:
-        #     print(i)
+
         hard_voting_result = self.hard_voting(yolo_status,mrcnn_status,ef_uncropped_results,ef_cropped_results)
         soft_voting_result = self.soft_voting(yolo_mean, mrcnn_mean, ef_uncropped_results, ef_cropped_results)
             # for result in i:
@@ -488,143 +343,20 @@ class Skin_lesion:
 
 if __name__ == '__main__':
     setproctitle('lesion')
-
-    class Config_41():
-        weight = 0.45
-        device = 0
-        verbose = False
-        topk = 5
-        model_path = os.path.join(os.getcwd(),"classification/efficientnet_models/41.pt")
-        model_name = 'efficientnet-b0'
-        class_names = {
-        "000": "normal_skin",
-        "001": "atopy",
-        "002": "prurigo",
-        "003": "scar",
-        "004": "psoriasis",
-        "005": "varicella",
-        "006": "nummular_eczema",
-        "007": "ota_like_melanosis",
-        "008": "becker_nevus",
-        "009": "pyogenic_granuloma",
-        "010": "acne",
-        "011": "salmon_patches",
-        "012": "dermatophytosis",
-        "013": "wart",
-        "014": "impetigo",
-        "015": "vitiligo",
-        "016": "ingrowing_nails",
-        "017": "congenital_melanocytic_nevus",
-        "018": "keloid",
-        "019": "epidermal_cyst",
-        "020": "insect_bite",
-        "021": "molluscum_contagiosum",
-        "022": "pityriasis_versicolor",
-        "023": "melanonychia",
-        "024": "alopecia_areata",
-        "025": "epidermal_nevus",
-        "026": "herpes_simplex",
-        "027": "urticaria",
-        "028": "nevus_depigmentosus",
-        "029": "lichen_striatus",
-        "030": "mongolian_spot_and_ectopic_mongolian_spot",
-        "031": "capillary_malformation",
-        "032": "pityriasis_lichenoides_chronica",
-        "033": "infantile_hemangioma",
-        "034": "mastocytoma",
-        "035": "nevus_sebaceous",
-        "036": "onychomycosis",
-        "037": "milk_coffee_nevus",
-        "038": "nail_dystrophy",
-        "039": "melanocytic_nevus",
-        "040": "juvenile_xanthogranuloma",
-        }
-    class Config_41_min(Config_41):
-        weight = 0.2
-        model_path = os.path.join(os.getcwd(),"classification/efficientnet_models/dp05_dc05.pt")
-    class Config_6_min(Config_41):
-        weight = 0.35
-        device = 1
-        model_path = "classification/efficientnet_models/min_b0_6.pt"
-        class_names = {
-        "000": "normal_skin",
-        "001": "atopy",
-        "002": "psoriasis",
-        "003": "acne",
-        "004": "epidermal_cyst",
-        "005": "varicella",
-        }
-    class Config_5(Config_41):
-        weight = 0.1
-        device = 1
-        model_path = "classification/efficientnet_models//classify_5.pt"
-        model_name = 'efficientnet-b7'
-        class_names = {
-            "000": "atopy",
-            "001": "seborrheic dermatitis",
-            "002": "psoriasis",
-            "003": "rosacea",
-            "004": "acne",
-        }
-
-    class Config_yolo():
-        model_path = "segmentation/yolo_models/best_n.pt"
-        model_names = None
-        display = False
-        save_path = None
-        verbose = False
-        device = 1
-        label = True
-        bbox = True
-        segmentation = True
-        file_paths = None
-
-    class Config_mrcnn(Mask_RCNN_Config):
-        ROOT_DIR = os.path.abspath("./")
-        COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
-        DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
-        # fixme 클래스네임이 정확하지 않아요 기입을 안하면 터지네요
-        class_names = ['others', 'atopic_dermatitis', "seborrheic dermatitis", "psoriasis", "rosacea", "acne"]
-        weights = './segmentation/mrcnn_models/mask_rcnn_atopy_0035.h5'
-        NAME = "atopy"
-        logs = DEFAULT_LOGS_DIR,
-        GPU_COUNT = 1
-        IMAGES_PER_GPU = 1
-        NUM_CLASSES = 1 + 1
-        VALIDATION_STEPS = 50
-        STEPS_PER_EPOCH = 1000
-        DETECTION_MIN_CONFIDENCE = 0.9
-        # GPU_COUNT = 1
-        # IMAGES_PER_GPU = 1
     # note 수정 1
-    ef_configs = [Config_41, Config_6_min]
+    ef_configs = [model_configs.Config_eff_41, model_configs.Config_eff_6_min]
     # ef_configs = [Config_6_min]
-    yolo_configs = [Config_yolo]
-    mrcnn_configs = [Config_mrcnn]
+    yolo_configs = [model_configs.Config_yolo]
+    mrcnn_configs = [model_configs.Config_mrcnn]
     skin_lesion = Skin_lesion(ef_configs=ef_configs,yolo_configs=yolo_configs,mrcnn_configs=mrcnn_configs,exp=True)
     image_path = "test_data/atomom_test_images_samples/"
-    # image_path = "test_data/x/"
+
     image_path_list = get_images_paths(image_path)
     output = []
     for i in tqdm(range(len(image_path_list))):
-        # if(i<28):
-        #     continue
-
         image_path = image_path_list[i]
         print(image_path)
         skin_lesion.inference(image_path=image_path)
-        # print("*"*50)
-        # if(i>1):
-        #     break
-        # break
-        # if(i>10):
-        #     break
-
 
     if(skin_lesion.exp):
         skin_lesion.save_exp()
-        # output.append([file_name, class_name, confidence])
-    # Write the output to a CSV file
-    # with open('./experiment_results/output.csv', 'w', newline='') as file:
-    #     writer = csv.writer(file)
-    #     writer.writerows(output)
