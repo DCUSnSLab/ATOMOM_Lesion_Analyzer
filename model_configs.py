@@ -10,12 +10,29 @@ class Config_eff():
 	model_name = None
 	class_names = None
 
-class Config_eff_41(Config_eff):
+class Cfg_1st_EffB7_Su_Cls_5(Config_eff):
+	# note Config_first_learning_result_efficientNet_b7_su_class_5
+	weight = 0.1
+	device = 1
+	verbose = False
+	topk = 5
+	model_path = "classification/efficientnet_models/first_learning_result_efficientNet_b7_su_class_5.pt"
+	model_name = 'efficientnet-b7'
+	class_names = {
+		"000": "atopy",
+		"001": "seborrheic dermatitis",
+		"002": "psoriasis",
+		"003": "rosacea",
+		"004": "acne",
+	}
+
+class Cfg_2nd_EffB0_Su_Cls_41(Config_eff):
+	# note Config_second_learning_result_efficientNet_b0_su_class_41
 	weight = 0.45
 	device = 0
 	verbose = False
 	topk = 5
-	model_path = os.path.join(os.getcwd(), "classification/efficientnet_models/41.pt")
+	model_path = os.path.join(os.getcwd(), "classification/efficientnet_models/second_learning_result_efficientNet_b0_su_class_41.pt")
 	model_name = 'efficientnet-b0'
 	class_names = {
 		"000": "normal_skin",
@@ -61,13 +78,13 @@ class Config_eff_41(Config_eff):
 		"040": "juvenile_xanthogranuloma",
 	}
 
-
-class Config_eff_min(Config_eff):
+class Cfg_2nd_EffB0_Ming_Cls_41(Config_eff):
+	# note Config_second_learning_result_efficientNet_b0_mingeon_class_41
 	weight = 0.2
 	device = 0
 	verbose = False
 	topk = 5
-	model_path = os.path.join(os.getcwd(), "classification/efficientnet_models/dp05_dc05.pt")
+	model_path = os.path.join(os.getcwd(), "classification/efficientnet_models/second_learning_result_efficientNet_b0_mingeon_class_41.pt")
 	model_name = 'efficientnet-b0'
 	class_names = {
 		"000": "normal_skin",
@@ -113,13 +130,13 @@ class Config_eff_min(Config_eff):
 		"040": "juvenile_xanthogranuloma",
 	}
 
-
-class Config_eff_6_min(Config_eff):
+class Cfg_2nd_EffB0_Ming_Cls_6(Config_eff):
+	# note Config_second_learning_result_efficientNet_b0_mingeon_class_6
 	weight = 0.35
 	device = 1
 	verbose = False
 	topk = 5
-	model_path = "classification/efficientnet_models/min_b0_6.pt"
+	model_path = "classification/efficientnet_models/second_learning_result_efficientNet_b0_mingeon_class_6.pt"
 	model_name = 'efficientnet-b0'
 	class_names = {
 		"000": "normal_skin",
@@ -130,22 +147,79 @@ class Config_eff_6_min(Config_eff):
 		"005": "varicella",
 	}
 
-
-class Config_eff_5(Config_eff):
-	weight = 0.1
+class Cfg_2nd_EffB7_Ming_Cls_6(Config_eff):
+	# note Config_second_learning_result_efficientNet_b7_mingeon_class_6
+	weight = 0.35
 	device = 1
 	verbose = False
 	topk = 5
-	model_path = "classification/efficientnet_models//classify_5.pt"
+	model_path = "classification/efficientnet_models/second_learning_result_efficientNet_b7_mingeon_class_6.pt"
 	model_name = 'efficientnet-b7'
 	class_names = {
-		"000": "atopy",
-		"001": "seborrheic dermatitis",
+		"000": "normal_skin",
+		"001": "atopy",
 		"002": "psoriasis",
-		"003": "rosacea",
-		"004": "acne",
+		"003": "acne",
+		"004": "epidermal_cyst",
+		"005": "varicella",
 	}
 
+class Cfg_3rd_EffB0_Ming1_Cls_4(Config_eff):
+	# note Config_third_learning_result_efficientNet_b0_mingeon_1_class_4
+	weight = 0.25
+	device = 1
+	verbose = False
+	topk = 5
+	model_path = "classification/efficientnet_models/third_learning_result_efficientNet_b0_mingeon_1_class_4.pt"
+	model_name = 'efficientnet-b0'
+	class_names = {
+		"000": "normal_skin",
+		"001": "atopy",
+		"002": "psoriasis",
+		"003": "urticaria",
+	}
+class Cfg_3rd_EffB0_Ming2_Cls_4(Config_eff):
+	# note Config_third_learning_result_efficientNet_b0_mingeon_2_class_4
+	weight = 0.25
+	device = 1
+	verbose = False
+	topk = 5
+	model_path = "classification/efficientnet_models/third_learning_result_efficientNet_b0_mingeon_2_class_4.pt"
+	model_name = 'efficientnet-b0'
+	class_names = {
+		"000": "normal_skin",
+		"001": "atopy",
+		"002": "psoriasis",
+		"003": "urticaria",
+	}
+class Cfg_3rd_EffB0_Ming3_Cls_4(Config_eff):
+	# note Config_third_learning_result_efficientNet_b0_mingeon_3_class_4
+	weight = 0.25
+	device = 1
+	verbose = False
+	topk = 5
+	model_path = "classification/efficientnet_models/third_learning_result_efficientNet_b0_mingeon_3_class_4.pt"
+	model_name = 'efficientnet-b0'
+	class_names = {
+		"000": "normal_skin",
+		"001": "atopy",
+		"002": "psoriasis",
+		"003": "urticaria",
+	}
+class Cfg_3rd_EffB0_Ming4_Cls_4(Config_eff):
+	# note Config_third_learning_result_efficientNet_b0_mingeon_4_class_4
+	weight = 0.25
+	device = 1
+	verbose = False
+	topk = 5
+	model_path = "classification/efficientnet_models/third_learning_result_efficientNet_b0_mingeon_4_class_4.pt"
+	model_name = 'efficientnet-b0'
+	class_names = {
+		"000": "normal_skin",
+		"001": "atopy",
+		"002": "psoriasis",
+		"003": "urticaria",
+	}
 
 class Config_yolo():
 	model_path = "segmentation/yolo_models/best_n.pt"
