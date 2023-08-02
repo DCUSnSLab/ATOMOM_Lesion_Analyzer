@@ -28,7 +28,7 @@ class Cfg_1st_EffB7_Su_Cls_5(Config_eff):
 
 class Cfg_2nd_EffB0_Su_Cls_41(Config_eff):
 	# note Config_second_learning_result_efficientNet_b0_su_class_41
-	weight = 0.45
+	weight = 0.1
 	device = 0
 	verbose = False
 	topk = 5
@@ -80,7 +80,7 @@ class Cfg_2nd_EffB0_Su_Cls_41(Config_eff):
 
 class Cfg_2nd_EffB0_Ming_Cls_41(Config_eff):
 	# note Config_second_learning_result_efficientNet_b0_mingeon_class_41
-	weight = 0.2
+	weight = 0.1
 	device = 0
 	verbose = False
 	topk = 5
@@ -132,7 +132,7 @@ class Cfg_2nd_EffB0_Ming_Cls_41(Config_eff):
 
 class Cfg_2nd_EffB0_Ming_Cls_6(Config_eff):
 	# note Config_second_learning_result_efficientNet_b0_mingeon_class_6
-	weight = 0.35
+	weight = 0.1
 	device = 1
 	verbose = False
 	topk = 5
@@ -149,7 +149,7 @@ class Cfg_2nd_EffB0_Ming_Cls_6(Config_eff):
 
 class Cfg_2nd_EffB7_Ming_Cls_6(Config_eff):
 	# note Config_second_learning_result_efficientNet_b7_mingeon_class_6
-	weight = 0.35
+	weight = 0.1
 	device = 1
 	verbose = False
 	topk = 5
@@ -166,7 +166,7 @@ class Cfg_2nd_EffB7_Ming_Cls_6(Config_eff):
 
 class Cfg_3rd_EffB0_Ming1_Cls_4(Config_eff):
 	# note Config_third_learning_result_efficientNet_b0_mingeon_1_class_4
-	weight = 0.25
+	weight = 0.1
 	device = 1
 	verbose = False
 	topk = 5
@@ -180,7 +180,7 @@ class Cfg_3rd_EffB0_Ming1_Cls_4(Config_eff):
 	}
 class Cfg_3rd_EffB0_Ming2_Cls_4(Config_eff):
 	# note Config_third_learning_result_efficientNet_b0_mingeon_2_class_4
-	weight = 0.25
+	weight = 0.1
 	device = 1
 	verbose = False
 	topk = 5
@@ -194,7 +194,7 @@ class Cfg_3rd_EffB0_Ming2_Cls_4(Config_eff):
 	}
 class Cfg_3rd_EffB0_Ming3_Cls_4(Config_eff):
 	# note Config_third_learning_result_efficientNet_b0_mingeon_3_class_4
-	weight = 0.25
+	weight = 0.1
 	device = 1
 	verbose = False
 	topk = 5
@@ -208,7 +208,7 @@ class Cfg_3rd_EffB0_Ming3_Cls_4(Config_eff):
 	}
 class Cfg_3rd_EffB0_Ming4_Cls_4(Config_eff):
 	# note Config_third_learning_result_efficientNet_b0_mingeon_4_class_4
-	weight = 0.25
+	weight = 0.1
 	device = 1
 	verbose = False
 	topk = 5

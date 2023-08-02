@@ -175,12 +175,13 @@ class Skin_lesion:
         return mrcnn_inferred_images,mrcnn_cropped_images,mrcnn_status,mrcnn_confidences
     def save_exp(self):
         file_name = ""
-        for i in range(self.num_ef_models):
-            file_name += self.ef_config_names[i]+" "+ str(round(self.ef_weights[i],3))
-            if(i+1<self.num_ef_models):
-                file_name += ", "
-            # file_name+="result"
-        file_name += '.xlsx'
+        # for i in range(self.num_ef_models):
+        #     # file_name += self.ef_config_names[i]+" "+ str(round(self.ef_weights[i],3))
+        #     # if(i+1<self.num_ef_models):
+        #     #     file_name += ", "
+        #     file_name+="result"
+        # file_name += '.xlsx'
+        file_name += 'result.xlsx'
         self.exp_wb.save("./exp_results/"+file_name)
     def __write_metrics_to_excel(self,ws,len_result):
         ws.append([])
@@ -344,9 +345,11 @@ class Skin_lesion:
 
 if __name__ == '__main__':
     setproctitle('lesion')
-    # note 0.89 acc
+    # note 0.89 acc 0.45 0.35
     # ef_configs = [model_configs.Cfg_2nd_EffB0_Su_Cls_41, model_configs.Cfg_2nd_EffB0_Ming_Cls_6]
-    ef_configs = [model_configs.Cfg_3rd_EffB0_Ming1_Cls_4,model_configs.Cfg_3rd_EffB0_Ming2_Cls_4,model_configs.Cfg_3rd_EffB0_Ming3_Cls_4,model_configs.Cfg_3rd_EffB0_Ming4_Cls_4]
+    # ef_configs = [model_configs.Cfg_1st_EffB7_Su_Cls_5,model_configs.Cfg_2nd_EffB0_Su_Cls_41,model_configs.Cfg_2nd_EffB0_Ming_Cls_41,model_configs.Cfg_2nd_EffB0_Ming_Cls_6,model_configs.Cfg_2nd_EffB7_Ming_Cls_6,
+    #               model_configs.Cfg_3rd_EffB0_Ming1_Cls_4,model_configs.Cfg_3rd_EffB0_Ming2_Cls_4,model_configs.Cfg_3rd_EffB0_Ming3_Cls_4,model_configs.Cfg_3rd_EffB0_Ming4_Cls_4]
+    ef_configs = [model_configs.Cfg_2nd_EffB0_Su_Cls_41, model_configs.Cfg_3rd_EffB0_Ming4_Cls_4]
     # ef_configs = [Config_6_min]
     yolo_configs = [model_configs.Config_yolo]
     mrcnn_configs = [model_configs.Config_mrcnn]
