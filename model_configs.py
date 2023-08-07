@@ -28,7 +28,7 @@ class Cfg_1st_EffB7_Su_Cls_5(Config_eff):
 
 class Cfg_2nd_EffB0_Su_Cls_41(Config_eff):
 	# note Config_second_learning_result_efficientNet_b0_su_class_41
-	weight = 0.1
+	weight = 0.5
 	device = 0
 	verbose = False
 	topk = 5
@@ -194,7 +194,7 @@ class Cfg_3rd_EffB0_Ming2_Cls_4(Config_eff):
 	}
 class Cfg_3rd_EffB0_Ming3_Cls_4(Config_eff):
 	# note Config_third_learning_result_efficientNet_b0_mingeon_3_class_4
-	weight = 0.1
+	weight = 0.5
 	device = 1
 	verbose = False
 	topk = 5
