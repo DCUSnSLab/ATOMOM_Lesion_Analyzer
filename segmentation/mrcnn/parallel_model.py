@@ -173,3 +173,4 @@ if __name__ == "__main__":
         callbacks=[keras.callbacks.TensorBoard(log_dir=MODEL_DIR,
                                                write_graph=True)]
     )
+
