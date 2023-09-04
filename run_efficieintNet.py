@@ -37,11 +37,12 @@ class Efficient_net:
         self.Config = Config
         self.Config.num_classes = len(self.Config.class_names)
         self.model = self.__load_model()
-        self.data_transforms = transforms.Compose([
+        self.data_transforms1 = torch.nn.Sequential(
             transforms.Resize((224, 224)),
-            transforms.ToTensor(),
+        )
+        self.data_transforms2 = torch.nn.Sequential(
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
+        )
 
     def __load_model(self):
         model = EfficientNet.from_pretrained(self.Config.model_name, num_classes=self.Config.num_classes)
@@ -58,8 +59,11 @@ class Efficient_net:
             image = cv2.cvtColor(image_info, cv2.COLOR_BGR2RGB)
         assert image is not None, "경로 또는 ndarray를 입력하세요"
         image = Image.fromarray(image).convert('RGB')
-        inputs = self.data_transforms(image)
+        T = transforms.ToTensor()
+        inputs = self.data_transforms1(image)
+        inputs = T(inputs)
         inputs = inputs.to(self.device)
+        inputs = self.data_transforms2(inputs)
         outputs = self.model(inputs.unsqueeze(0))
         probabilities = torch.nn.functional.softmax(outputs, dim=1)
         # print(probabilities)
