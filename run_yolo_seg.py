@@ -70,7 +70,7 @@ class Yolo_Seg:
         #     cv2.waitKey(30000)
         return image
 
-    def __get_results(self, image_info):
+    def __get_results(self, image_info,visualize):
         image = None
         if isinstance(image_info, str):
             image = cv2.imread(image_info)
@@ -94,13 +94,14 @@ class Yolo_Seg:
             for i, result in enumerate(results):
                 image,cropped,confidences = self.__draw_boexes(image=image, boxes=result.boxes)
                 cropped_images = cropped
-                image = self.__draw_segmentation(image, segmentations=result.masks.masks)
+                if(visualize):
+                    image = self.__draw_segmentation(image, segmentations=result.masks.masks)
                 # cv2.imshow("image")
                 # cv2.waitKey(0)
         return image, cropped_images, True, confidences
 
 
-    def inference(self, image_info,save_path=False):
+    def inference(self, image_info,save_path=False,visualize = False):
         if isinstance(image_info, str):
             self.__get_image_paths(image_info)
         elif isinstance(image_info, np.ndarray):
@@ -110,7 +111,7 @@ class Yolo_Seg:
         inference_results = [None for _ in range(len(self.Config.file_paths))]
 
         for i, image_info in enumerate(self.Config.file_paths):
-            image, cropped_images,status, confidences = self.__get_results(image_info=image_info)
+            image, cropped_images,status, confidences = self.__get_results(image_info=image_info,visualize=visualize)
             inference_results[i] = (image,cropped_images,status, confidences)
 
             if (save_path):
