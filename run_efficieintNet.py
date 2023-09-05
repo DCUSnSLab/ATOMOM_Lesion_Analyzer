@@ -58,10 +58,11 @@ class Efficient_net:
             #  cv2로 이미지를 읽는 상황이라 가정함
             image = cv2.cvtColor(image_info, cv2.COLOR_BGR2RGB)
         assert image is not None, "경로 또는 ndarray를 입력하세요"
-        image = Image.fromarray(image).convert('RGB')
+        image = Image.fromarray(image)
+
         T = transforms.ToTensor()
         inputs = self.data_transforms1(image)
-        inputs = T(inputs)
+        inputs = T(inputs).to('cuda')
         inputs = inputs.to(self.device)
         inputs = self.data_transforms2(inputs)
         outputs = self.model(inputs.unsqueeze(0))
