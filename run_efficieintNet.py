@@ -57,8 +57,9 @@ class Efficient_net:
         elif isinstance(image_info, np.ndarray):
             #  cv2로 이미지를 읽는 상황이라 가정함
             image = cv2.cvtColor(image_info, cv2.COLOR_BGR2RGB)
+            image = Image.fromarray(image)
         assert image is not None, "경로 또는 ndarray를 입력하세요"
-        image = Image.fromarray(image)
+
 
         T = transforms.ToTensor()
         inputs = self.data_transforms1(image)
