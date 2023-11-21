@@ -195,7 +195,7 @@ class Cfg_3rd_EffB0_Ming2_Cls_4(Config_eff):
 class Cfg_3rd_EffB0_Ming3_Cls_4(Config_eff):
 	# note Config_third_learning_result_efficientNet_b0_mingeon_3_class_4
 	weight = 0.5
-	device = 1
+	device = 0
 	verbose = False
 	topk = 5
 	model_path = "classification/efficientnet_models/third_learning_result_efficientNet_b0_mingeon_3_class_4.pt"
@@ -227,9 +227,9 @@ class Config_yolo():
 	display = False
 	save_path = None
 	verbose = False
-	device = 1
-	label = True
-	bbox = True
+	device = 0
+	label = False
+	bbox = False
 	segmentation = True
 	file_paths = None
 

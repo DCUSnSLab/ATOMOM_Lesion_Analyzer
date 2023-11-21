@@ -63,8 +63,8 @@ class Efficient_net:
 
         T = transforms.ToTensor()
         inputs = self.data_transforms1(image)
-        inputs = T(inputs).to('cuda')
-        inputs = inputs.to(self.device)
+        inputs = T(inputs).to(self.device)
+        # inputs = inputs.to(self.device)
         inputs = self.data_transforms2(inputs)
         outputs = self.model(inputs.unsqueeze(0))
         probabilities = torch.nn.functional.softmax(outputs, dim=1)

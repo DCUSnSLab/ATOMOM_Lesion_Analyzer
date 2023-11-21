@@ -124,7 +124,7 @@ class Skin_lesion:
         for i, model in enumerate(self.ef_models):
             temp_result = []
             class_names = []
-            print("__ef_inference_cropped_image",len(cropped_images))
+            # print("__ef_inference_cropped_image",len(cropped_images))
             for img in cropped_images:
                 infeered_result = model.inference(image_info=img)
                 class_names += [result[0] for result in infeered_result]
@@ -144,7 +144,7 @@ class Skin_lesion:
     def __yolo_seg_inference(self, image_info):
         inference_results = []
         for i, model in enumerate(self.yolo_seg_models):
-            inference_results += model.inference(image_info=image_info)
+            inference_results += model.inference(image_info=image_info,visualize=True)
         yolo_inferred_images = []
         yolo_cropped_images = []
         yolo_status = []
@@ -255,8 +255,8 @@ class Skin_lesion:
                 voting.append(result[0])
             else:
                 voting.append("normal")
-        print("hard",voting)
-        print(Counter(voting).most_common(n=1))
+        # print("hard",voting)
+        # print(Counter(voting).most_common(n=1))
         return voting
     def soft_voting(self,yolo_mean,mrcnn_mean,ef_uncropped_results,ef_cropped_results):
         class_names = []
@@ -282,7 +282,7 @@ class Skin_lesion:
         predictions_dict = dict(sorted(predictions_dict.items(), key=lambda x: x[1], reverse=True))
         # print("soft", predictions_dict)
         soft = [item for pair in predictions_dict.items() for item in pair]
-        print("soft", soft)
+        # print("soft", soft)
         return soft
 
 
@@ -291,10 +291,11 @@ class Skin_lesion:
         # ef_results = self.__ef_inference(img)
 
         mrcnn_inferred_images, mrcnn_cropped_images,mrcnn_status, mrcnn_confidences = self.__mrcnn_inference(image_info=deepcopy(img))
-        mrcnn_inferred_images = mrcnn_inferred_images[0]
-        mrcnn_cropped_images = mrcnn_cropped_images[0]
-        mrcnn_status = mrcnn_status[0]
-        mrcnn_confidences = np.array(mrcnn_confidences[0])
+        if(len(mrcnn_inferred_images)>0):
+            mrcnn_inferred_images = mrcnn_inferred_images[0]
+            mrcnn_cropped_images = mrcnn_cropped_images[0]
+            mrcnn_status = mrcnn_status[0]
+            mrcnn_confidences = np.array(mrcnn_confidences[0])
 
         yolo_inferred_images, yolo_cropped_images, yolo_status, yolo_confidences = self.__yolo_seg_inference(
             image_info=deepcopy(img))
@@ -307,8 +308,8 @@ class Skin_lesion:
         # mrcnn_sum = mrcnn_confidences.sum()
         # yolo_sum = yolo_confidences.sum()
         # note 값을 0으로
-        mrcnn_mean = mrcnn_confidences.mean()
-        yolo_mean = yolo_confidences.mean()
+        # mrcnn_mean = mrcnn_confidences.mean()
+        # yolo_mean = yolo_confidences.mean()
         mrcnn_mean = 0
         yolo_mean = 0
 
@@ -340,7 +341,7 @@ class Skin_lesion:
         #     print("ddd"*23)
         if (self.exp):
             self.__write_excel(img_name=os.path.basename(image_path).split('.')[0], yolo_status=yolo_status,yolo_mean=yolo_mean,mrcnn_status=mrcnn_status,mrcnn_mean=mrcnn_mean,ef_uncropped_results=ef_uncropped_results,ef_cropped_results=ef_cropped_results,hard_voting_result=hard_voting_result,soft_voting_result=soft_voting_result)
-
+        return yolo_inferred_images, soft_voting_result
 
 
 if __name__ == '__main__':
@@ -349,10 +350,10 @@ if __name__ == '__main__':
     # ef_configs = [model_configs.Cfg_2nd_EffB0_Su_Cls_41, model_configs.Cfg_2nd_EffB0_Ming_Cls_6]
     # ef_configs = [model_configs.Cfg_1st_EffB7_Su_Cls_5,model_configs.Cfg_2nd_EffB0_Su_Cls_41,model_configs.Cfg_2nd_EffB0_Ming_Cls_41,model_configs.Cfg_2nd_EffB0_Ming_Cls_6,model_configs.Cfg_2nd_EffB7_Ming_Cls_6,
     #               model_configs.Cfg_3rd_EffB0_Ming1_Cls_4,model_configs.Cfg_3rd_EffB0_Ming2_Cls_4,model_configs.Cfg_3rd_EffB0_Ming3_Cls_4,model_configs.Cfg_3rd_EffB0_Ming4_Cls_4]
-    ef_configs = [model_configs.Cfg_2nd_EffB0_Su_Cls_41, model_configs.Cfg_3rd_EffB0_Ming4_Cls_4]
+    ef_configs = [model_configs.Cfg_2nd_EffB0_Su_Cls_41, model_configs.Cfg_3rd_EffB0_Ming3_Cls_4]
     # ef_configs = [Config_6_min]
     yolo_configs = [model_configs.Config_yolo]
-    mrcnn_configs = [model_configs.Config_mrcnn]
+    mrcnn_configs = []
     skin_lesion = Skin_lesion(ef_configs=ef_configs,yolo_configs=yolo_configs,mrcnn_configs=mrcnn_configs,exp=True)
     image_path = "test_data/atomom_test_images_samples/"
 
@@ -360,7 +361,7 @@ if __name__ == '__main__':
     output = []
     for i in tqdm(range(len(image_path_list))):
         image_path = image_path_list[i]
-        print(image_path)
+        # print(image_path)
         skin_lesion.inference(image_path=image_path)
         # break
 

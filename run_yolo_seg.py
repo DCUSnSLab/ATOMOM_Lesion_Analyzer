@@ -43,7 +43,8 @@ class Yolo_Seg:
             # print("*"*50)
             # confidence[i]
             cropped_images[i] = self.copied_image[int(box[1]):int(box[3]), int(box[0]):int(box[2])]
-            cv2.rectangle(image, p1, p2, (0, 0, 255), thickness=lw, lineType=cv2.LINE_AA)
+            if self.Config.bbox:
+                cv2.rectangle(image, p1, p2, (0, 0, 255), thickness=lw, lineType=cv2.LINE_AA)
             cur_class = self.Config.model_names[int(boxes.cls[i])]
 
             if self.Config.label:
@@ -58,7 +59,7 @@ class Yolo_Seg:
                             thickness=tf, lineType=cv2.LINE_AA)
         return image, cropped_images, confidences
 
-    def __draw_segmentation(self, image, segmentations, alpha=0.8):
+    def __draw_segmentation2(self, image, segmentations, alpha=0.8):
         for segmentation in segmentations:
             segmentation = segmentation.cpu().numpy()
             segmentation = cv2.resize(segmentation, (image.shape[1], image.shape[0]))
@@ -69,6 +70,26 @@ class Yolo_Seg:
         #     cv2.imshow("image", image)
         #     cv2.waitKey(30000)
         return image
+
+    def __draw_segmentation(self, image, segmentations, alpha=0.8):
+        if len(segmentations) == 0:
+            return image
+
+        segmentations = [cv2.resize(seg.cpu().numpy(), (image.shape[1], image.shape[0])) for seg in segmentations]
+        # Stacking segmentations to shape (h, w, num_masks)
+        stacked_masks = np.stack(segmentations, axis=-1)
+
+        # Create a mask where any segmentation is active
+        combined_mask = np.any(stacked_masks, axis=-1)
+
+        # Create color overlay
+        color_overlay = np.zeros(image.shape, dtype=image.dtype)
+        color_overlay[combined_mask] = [0, 0, 255]
+
+        # Blend color_overlay with the original image
+        blended = cv2.addWeighted(src1=image, alpha=1, src2=color_overlay, beta=0.2, gamma=0)
+        return blended
+
 
     def __get_results(self, image_info,visualize):
         image = None
@@ -134,25 +155,25 @@ if __name__ == '__main__':
         save_path = None
         verbose = False
         device = 1
-        label = True
-        bbox = True
+        label = False
+        bbox = False
         segmentation = True
         file_paths = None
 
-    image_path = "/home/dgdgksj/skin_lesion/ultralytics/test_images/KakaoTalk_20221031_182210929.png"
-    image_path = "/home/dgdgksj/skin_lesion/ultralytics/atomom_test_images/"
+    image_path = "/home/dgdgksj/ATOMOM_Lesion_Analyzer/test_data/atomom_test_images_samples/atopy_video_0457.jpg"
+    # image_path = "/home/dgdgksj/skin_lesion/ultralytics/atomom_test_images/"
     yolo_seg = Yolo_Seg(config=Config_yolo)
 
 
 
 
 
-    inference_results = yolo_seg.inference(image_info=image_path)
+    inference_results = yolo_seg.inference(image_info=image_path,visualize=True)
     for i, data in enumerate(inference_results):
         for index,cr in enumerate(data[1]):
             cv2.imshow(str(index),cr)
             cv2.imwrite(str(index)+".jpg",cr)
-
+        cv2.imwrite("sdf.jpg", data[0])
         cv2.imshow("results",data[0])
-        cv2.waitKey(0)
+        cv2.waitKey(3000)
         cv2.destroyAllWindows()

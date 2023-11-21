@@ -161,18 +161,24 @@ if __name__ == '__main__':
 
     mrcnn = Mask_RCNN(mrcnn_config=mrcnn_config())
     image_path = '../ultralytics/atomom_test_images/atopy_001.jpg'
-    image_path = "/home/dgdgksj/skin_lesion/ultralytics/atomom_test_images/"
-    image_path_list = get_images_paths(image_path)
-    # a = tf.constant([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-    # b = tf.constant([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
-    # c = tf.matmul(a, b)
-    #
-    # print(c)
-    # exit()
-    for i, image_path in enumerate(image_path_list):
-        mrcnn.inference(image_info=image_path, display=True, show_label =True,show_bbox=True)
-        # cv2.waitKey(0)
-        # break
+    image_path = "/home/dgdgksj/ATOMOM_Lesion_Analyzer/test_data/atomom_test_images_samples/miso_0254.jpg"
+    asd=mrcnn.inference(image_info=image_path, display=True, show_label=True, show_bbox=False)
+
+    # cv2.imshow("sdf",masked_image)
+    # cv2.waitKey(0)
+
+    cv2.imwrite("sdf.jpg",cv2.cvtColor(asd[0][0],cv2.COLOR_RGB2BGR))
+    # image_path_list = get_images_paths(image_path)
+    # # a = tf.constant([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    # # b = tf.constant([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    # # c = tf.matmul(a, b)
+    # #
+    # # print(c)
+    # # exit()
+    # for i, image_path in enumerate(image_path_list):
+    #     mrcnn.inference(image_info=image_path, display=True, show_label =True,show_bbox=True)
+    #     cv2.waitKey(0)
+    #     # break
 
 
 
