@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAVER CLOVA - CLOVA OCR</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #E5F2FA;
+        }
+
+        .header {
+            background-color: #4E82B4 ;
+            padding: 10px 10px;
+            color: white;
+            font-size: 24px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #F7F7F7;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .title {
+            font-size: 22px;
+            margin-top: 0;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .content-wrapper {
+            /*float: left;*/
+            width: 100%;
+        }
+        .image-container, .text-container {
+            float: left;
+            width: 48%;
+            height: 250px; /* 원하는 높이에 따라 값을 조절할 수 있습니다. */
+            box-sizing: border-box;
+        }
+
+        .image-container {
+            margin-right: 4%;
+        }
+        .button-container {
+            float: right;
+            width: 48%;
+        }
+        .text-container {
+            padding: 20px;
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            overflow-y: auto; /* 이 부분이 내용이 많을 때 스크롤을 추가합니다. */
+        }
+
+
+
+
+        .footer-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 50px;
+        }
+        .upload-button {
+            background-color: #2E4E75; /* 녹색 배경 */
+            color: #ffffff; /* 흰색 글씨 */
+            padding: 12px 30px; /* 패딩 값 조절 */
+            border-radius: 5px; /* 모서리 둥글게 */
+            font-size: 16px; /* 글자 크기 */
+            border: none; /* 테두리 없앰 */
+            cursor: pointer; /* 마우스 오버시 손가락 모양 */
+            display: inline-block; /* inline-block으로 설정 */
+        }
+        .header .logo {
+            vertical-align: middle;
+            margin-right: 5px;
+            height: 50px;  /* 로고 이미지의 높이를 조절합니다. 원하는 크기에 따라 변경할 수 있습니다. */
+        }
+        .img-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 230px;
+            margin-right: 1px; /* 이미지 간의 간격을 조정하려면 이 값을 수정하세요. */
+            margin-top: 20px;
+        }
+
+        .img-label {
+            position: absolute;
+            top: -30px;  /* 이 값을 조정하여 라벨의 위치를 조절하세요. */
+            left: 50%;  /* 중앙에 배치하기 위해 50%로 설정 */
+            transform: translateX(-50%);  /* 중앙에 정확하게 배치하기 위한 변환 적용 */
+            color: white;  /* 텍스트 색상 */
+            background-color: rgba(46, 78, 117, 0.8);  /* 텍스트의 배경색 (투명도 포함) */
+            padding: 5px 10px;  /* 텍스트 주변의 패딩 */
+            border-radius: 3px;  /* 모서리 둥글게 */
+        }
+        .result-text {
+            font-family: 'Arial', sans-serif; /* 원하는 폰트로 변경하세요 */
+            font-size: 14px; /* 원하는 크기로 변경하세요 */
+            color: #333; /* 텍스트 색상 */
+            text-align: left; /* 좌측 정렬 */
+            white-space: pre-wrap; /* 줄바꿈을 적용하기 위한 설정 */
+        }
+        .original-text {
+            font-family: 'Arial', sans-serif; /* 원하는 폰트로 변경하세요 */
+            font-size: 14px; /* 원하는 크기로 변경하세요 */
+            color: #FFFFFF; /* 텍스트 색상 */
+            text-align: left; /* 좌측 정렬 */
+            white-space: pre-wrap; /* 줄바꿈을 적용하기 위한 설정 */
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 280px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1000;
+            bottom: -190px;  /* 이 값을 조절하여 툴팁의 위치를 조절하세요. */
+            left: 230%;
+            margin-left: -160px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltiptext {
+            bottom: 1%;
+            left: 1%;
+            transform: translateX(-50%);
+            /* 기타 스타일은 이전에 제공된 것을 사용 */
+        }
+
+        /*.img-label {*/
+        /*    !*display: block;*!*/
+        /*    text-align: center;*/
+        /*    color: #333;  !* 텍스트 색상 *!*/
+        /*    padding: 5px 0;  !* 텍스트 주변의 패딩 *!*/
+        /*    background-color: rgba(255, 255, 255, 0.7);  !* 텍스트의 배경색 (투명도 포함) *!*/
+        /*}*/
+
+
+    </style>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+
+        function uploadFile() {
+            document.getElementById('Coauthform').submit();
+        }
+
+        function triggerFileSelect() {
+            document.getElementById('uploadfile').click();
+        }
+    </script>
+</head>
+<body>
+    <div class="header">
+        <img src="static/logo.png" alt="SNSLAB Logo" class="logo">
+<!--        Software and System Laboratary - Skin Lesion Analyzer-->
+        SNSLAB - Skin Lesion Analyzer
+    </div>
+
+    <div class="container">
+        <h1 class="title">Try it now</h1>
+        <p class="description">Skin Lesion Recognition - Basic model that can recognize Atopy...</p>
+
+        <div class="image-container">
+            <div class="img-wrapper">
+                <span class="img-label">Original</span>
+                <img src="static/source/{{srcImgname}}" width="224" height="224"/>
+            </div>
+            <div class="img-wrapper">
+                <span class="img-label">Result Image</span>
+                <img src="static/source/{{resultImgname}}" width="224" height="224"/>
+            </div>
+        </div>
+
+        <div class="text-container">
+            <div class="tooltip">
+                <strong>Diagnostic Result</strong>
+                <span class="tooltiptext"><pre class="original-text">{{originaltext}}</pre></span>
+            </div>
+            <pre class="result-text">{{resulttext}}</pre>
+        </div>
+
+        <div class="button-container">
+            <form action="" method="post" id="Coauthform" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" name="uploadfile" id="uploadfile" onchange="uploadFile();" style="display:none;"/>
+            </form>
+            <button class="upload-button" onclick="event.preventDefault(); document.getElementById('uploadfile').click();">Upload</button>
+        </div>
+
+        <div style="clear: both;"></div>
+
+        <p class="footer-text">The models provided are for experience only...</p>
+    </div>
+</body>
+
+</html>

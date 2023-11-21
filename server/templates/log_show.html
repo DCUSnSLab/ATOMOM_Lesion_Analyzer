@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 가로 중앙 정렬 */
+            margin-top: 40px; /* 상단 간격 */
+        }
+
+        /* 숨김 처리 */
+        #uploadfile {
+            display: none;
+        }
+
+        /* 사용자 정의 버튼 스타일 */
+        .custom-file-upload {
+            padding: 10px;
+            border: 1px solid #ccc;
+            display: inline-block;
+            cursor: pointer;
+            margin-top: 20px; /* 버튼과 이미지 사이의 간격 */
+        }
+
+        table {
+            margin: 20px 0; /* 위 아래 마진 추가 */
+        }
+
+    </style>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+
+        function uploadFile() {
+            document.getElementById('Coauthform').submit();
+        }
+
+        function triggerFileSelect() {
+            document.getElementById('uploadfile').click();
+        }
+    </script>
+</head>
+<body>
+
+    <h1>
+        {{menutitle}}
+    </h1>
+
+    <div>
+        <table>
+            <tr>
+                <!-- 원본 이미지 -->
+                <td width="50%">
+                    {% if imgname == '' %}
+                    이미지를 업로드해 주세요.
+                    {% else %}
+                    <img src="static/source/{{srcImgname}}" width="435" height="374" />
+                    {% endif %}
+                </td>
+                <!-- 결과 이미지 -->
+                <td width="50%">
+                    <img src="static/source/{{resultImgname}}" width="435" height="374" />
+                </td>
+            </tr>
+            <tr>
+                <!-- 결과 텍스트 -->
+                <td colspan="2">
+                    <pre>
+                    {{resulttext}}
+                    </pre>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <form action="" method="post" id="Coauthform" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="uploadfile" id="uploadfile" onchange="uploadFile();" />
+        <label class="custom-file-upload" onclick="triggerFileSelect();">파일 선택</label>
+    </form>
+
+</body>
+
+</html>
