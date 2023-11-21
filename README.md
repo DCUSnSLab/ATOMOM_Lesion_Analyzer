@@ -60,7 +60,20 @@ Note: The datasets provided by AI Hub are subject to their terms of use, and it 
 
 
 ### Sample Results
-![image](https://github.com/DCUSnSLab/ATOMOM_Lesion_Analyzer/assets/48535768/0a5a3b70-64a5-4a5c-95ec-ce968594c929)
+
+The images below demonstrate the sample results from the ATOMOM Lesion Analyzer for both desktop and mobile interfaces.
+
+#### Desktop Interface Result
+![image](https://github.com/DCUSnSLab/ATOMOM_Lesion_Analyzer/assets/48535768/e06ba319-df2c-4d7d-90c3-6bf73a29f10c)
+
+
+#### Mobile Interface Result
+![image](https://github.com/DCUSnSLab/ATOMOM_Lesion_Analyzer/assets/48535768/adb62cfe-f2ba-4bca-88ae-a54540d21540)
+
+
+
+
+Note: If the images are not displaying, please ensure that the links are correct and that the GitHub repository settings allow for image hosting.
 
 ## Acknowledgements
 This implementation has been based on these repository [yolov8](https://github.com/ultralytics/ultralytics), [
