@@ -24,12 +24,33 @@ The system is composed of the following key modules:
 - Ensemble Decision: Uses soft voting to combine the results of multiple models to improve accuracy.
 
 ## Getting Started
-### Dependency
-- This work was tested with PyTorch 1.10.1,Tensorflow 2.2.0 CUDA 11.2, python 3.7.13, django 3.2.22, djangorestframework 3.14, django-extensions 3.2.3 and Ubuntu 18.04.3 LTS. 
+## Environment Setup
 
-```
-You must need `conda env create --file environment.yaml`.
-```
+### Using Docker
+
+We have transitioned to using Docker for environment setup to ensure consistency across all setups. To set up your environment using Docker, follow these steps:
+
+1. Build the Docker image from the provided Dockerfile: `docker build -t lesion .`
+2. Run the Docker container: `docker run -it --rm --gpus all -p 8000:8000 lesion`
+
+### Using Conda (Alternative)
+
+For users who prefer setting up their environment using Conda, please note that while the project has primarily moved to a Docker-based setup for its environment, it's still possible to use Conda based on earlier project configurations.
+
+If you specifically need or prefer to use Conda for your environment setup, refer to the project state at commit `54ac160` for the `environment.yaml` file that was used before the transition to Docker. This file contains the necessary configuration to set up your environment using Conda.
+
+To revert to or manually adjust your `environment.yaml` based on the specifications found in commit `54ac160`, you may follow these steps:
+
+1. Navigate to the project's Git repository.
+2. Use the following Git command to checkout the `environment.yaml` file from commit `54ac160`:
+    ```bash
+    git checkout 54ac160 -- environment.yaml
+    ```
+    This command will check out the `environment.yaml` file from commit `54ac160` into your current working directory. Please be aware that this action might overwrite any local changes you've made to the `environment.yaml` file. Ensure to back up your current environment file if necessary.
+3. Once you have the `environment.yaml` file from commit `54ac160`, create the Conda environment with the command:
+    ```bash
+    conda env create --file environment.yaml
+    ```
 
 ### Demo instruction using pre-trained model
 - Currently, this repository does not provide a pre-trained model for public use due to size constraints and licensing issues. If you are interested in a demonstration of the Ensemble-based Skin Lesion Detection System using a pre-trained model, please follow these steps:
