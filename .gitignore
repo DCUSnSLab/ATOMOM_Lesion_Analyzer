@@ -1,11 +1,12 @@
 .idea
 **/saved_models/*
-**/segmentation/*
 *.pt
 *.pyc
 *.jpg
 *.png
 *.bak
+*.h5
 *.xlsx
 *.txt
 *.prof
+*.zip
